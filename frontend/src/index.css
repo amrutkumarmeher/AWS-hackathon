@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --color-ink: #161311;
+  --color-paper: #f3ece1;
+  --color-ticket: #c4452d;
+  --color-teal: #1c6b62;
+  --color-gold: #c9a227;
+  --color-moss: #3d5a40;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f3ece1;
+  color: #161311;
+  font-family: var(--font-sans);
+}
+
+.ticket-perforation {
+  background-image: radial-gradient(circle, #f3ece1 6px, transparent 6.5px);
+  background-size: 16px 16px;
+  background-position: center;
+}
