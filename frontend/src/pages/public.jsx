@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, session } from "./api";
+import { api, session } from "../api";
 
 export function Landing() {
   return (
