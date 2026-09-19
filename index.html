@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MealSync - Smart Hostel Mess Queue Management System with real-time serving counters, dynamic wait time estimation, and live menu display.">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="stylesheet" href="/index.css">
+  <title>MealSync • Smart Mess Queue & Counter Management</title>
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header>
+    <nav>
+      <div class="brand" id="navBrand" title="Go to MealSync Home">
+        <img src="/logo.png" alt="MealSync Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-title">MealSync</span>
+          <span class="brand-tag">Smart Mess Queue</span>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <div class="live-indicator" id="liveIndicator">
+          <span class="live-pulse"></span>
+          <span id="liveStatusText">Live Mess Synced</span>
+        </div>
+      </div>
+
+      <!-- Top Right Corner Navigation Options -->
+      <div class="nav-right">
+        <!-- Visible on Home / Unauthenticated state -->
+        <div class="nav-auth-btns" id="navAuthBtns">
+          <button class="btn-nav-student" id="btnNavStudentLogin">
+            <span>🎓</span> Login as Student
+          </button>
+          <button class="btn-nav-staff" id="btnNavStaffLogin">
+            <span>👨‍🍳</span> Login as Staff
+          </button>
+        </div>
+
+        <!-- Visible when logged in -->
+        <div class="nav-user-controls" id="navUserControls" style="display: none;">
+          <div class="user-identity-badge" id="userBadge">
+            <div class="user-avatar" id="userAvatarText">ST</div>
+            <div style="display: flex; flex-direction: column;">
+              <span class="user-name" id="userNameDisplay">Student Name</span>
+              <span class="user-roll" id="userRoleDisplay">#2102090012</span>
+            </div>
+          </div>
+          <button class="btn-logout" id="btnLogout" title="Logout and return to home page">
+            <span>🚪</span> Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main>
+    <!-- ======================================================= -->
+    <!-- VIEW 1: HOME / LANDING PAGE (Opened first upon visiting) -->
+    <!-- ======================================================= -->
+    <section id="viewHome">
+      <div class="home-hero">
+        <div class="hero-pill">
+          <span>🚀</span> Smart Mess Operations Platform
+        </div>
+        <h1>
+          Say Goodbye to Chaotic <br>
+          <span class="gradient-text">Mess Crowds & Endless Lines</span>
+        </h1>
+        <p class="hero-desc">
+          <strong>MealSync</strong> transforms college and hostel mess dining with real-time digital queues. 
+          Students can inspect menus, check dynamic wait times calculated from live serving speed, and join lines virtually 
+          with automatic switching. Mess staff can launch counters and serve students one-by-one seamlessly.
+        </p>
+
+        <div class="hero-cta-group">
+          <button class="btn-hero-primary" id="heroBtnStudent">
+            <span>🎓</span> Login as Student to Join Queue
+          </button>
+          <button class="btn-hero-secondary" id="heroBtnStaff">
+            <span>👨‍🍳</span> Login as Staff to Manage Lines
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Mess Stats Banner -->
+      <div class="home-stats-banner">
+        <div class="stat-card">
+          <div class="stat-icon blue">🏪</div>
+          <div class="stat-content">
+            <h4>Active Counters</h4>
+            <div class="stat-value" id="homeStatActiveCounters">--</div>
+            <div class="stat-sub">Ready to serve meals</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon rose">👥</div>
+          <div class="stat-content">
+            <h4>Students in Line</h4>
+            <div class="stat-value" id="homeStatTotalQueue">--</div>
+            <div class="stat-sub">Across all dining lines</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon amber">⚡</div>
+          <div class="stat-content">
+            <h4>Avg Serving Pace</h4>
+            <div class="stat-value" id="homeStatAvgPace">--s</div>
+            <div class="stat-sub">Per student served</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">🍽️</div>
+          <div class="stat-content">
+            <h4>Meals Served</h4>
+            <div class="stat-value" id="homeStatMealsServed">--</div>
+            <div class="stat-sub">Today's mess session</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Section -->
+      <div class="home-section-title">
+        <h2>How MealSync Works</h2>
+        <p>A synchronous solution built specifically for hostel students and dining staff.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">📋</div>
+          <h3>Live Menus & Veg/Non-Veg Tagging</h3>
+          <p>Check what food is being served at every counter (Pure Veg or Non-Veg) before ever stepping into the mess hall.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🔄</div>
+          <h3>Automatic Line Switching</h3>
+          <p>Students can switch queues at any time. Joining a new line automatically exits the old one, preventing double-queueing.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">⏱️</div>
+          <h3>Dynamic Wait Calculations</h3>
+          <p>Powered by the JavaScript time module: tracks exact serving durations and computes moving average speeds for real-time ETAs.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">🍽️</div>
+          <h3>Staff Queue Management</h3>
+          <p>Mess staff can create new counters with custom dishes and dequeue students one-by-one with live timer feedback.</p>
+        </div>
+      </div>
+
+      <!-- Before vs After MealSync -->
+      <div class="comparison-box">
+        <div class="comp-col bad">
+          <h3>❌ The Old Mess Way</h3>
+          <ul class="comp-list">
+            <li><span>•</span> Unorganized physical crowding and pushed trays.</li>
+            <li><span>•</span> Zero visibility into counter menus or food availability.</li>
+            <li><span>•</span> Unpredictable waiting times causing students to miss lectures.</li>
+            <li><span>•</span> Stressful counter management for busy kitchen staff.</li>
+          </ul>
+        </div>
+        <div class="comp-col good">
+          <h3>✅ With MealSync</h3>
+          <ul class="comp-list">
+            <li><span>•</span> Virtual queueing from your hostel room or study desk.</li>
+            <li><span>•</span> Real-time menu breakdown and diet category badges.</li>
+            <li><span>•</span> Accurate live countdown timer and elapsed wait tracking.</li>
+            <li><span>•</span> Smooth one-by-one student serving and queue pacing.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 2: STUDENT LOGIN PAGE                             -->
+    <!-- ======================================================= -->
+    <section id="viewStudentLogin" style="display: none;">
+      <div class="login-view-wrapper">
+        <button class="btn-back-home" id="btnBackFromStudentLogin">
+          <span>←</span> Back to Home
+        </button>
+
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-icon-avatar student">🎓</div>
+            <h2>Student Access</h2>
+            <p>Enter your details to view active mess lines and join a queue.</p>
+          </div>
+
+          <form id="studentLoginForm">
+            <div class="form-group">
+              <label class="form-label" for="loginStudentName">Student Name</label>
+              <input type="text" id="loginStudentName" class="form-input" placeholder="e.g. Amrut Kumar" required autocomplete="name">
+            </div>
+
+            <div class="form-group">
+              <div class="form-label">
+                <label for="loginStudentId">Registration Number</label>
+                <span class="char-counter-badge" id="regNoCounter">0 / 10 digits</span>
+              </div>
+              <input 
+                type="text" 
+                id="loginStudentId" 
+                class="form-input" 
+                placeholder="10-digit number (e.g. 2102090012)" 
+                maxlength="10" 
+                inputmode="numeric" 
+                pattern="[0-9]{10}" 
+                required 
+                autocomplete="off"
+              >
+              <div class="form-feedback" id="regNoFeedback">Registration number must be exactly 10 numeric digits.</div>
+            </div>
+
+            <button type="submit" class="btn-submit-auth" id="btnSubmitStudentLogin">
+              <span>Enter Student Portal</span> ➔
+            </button>
+          </form>
+
+          <div class="preset-auth-chips">
+            <span class="label">Quick Demo Accounts:</span>
+            <div class="quick-chips">
+              <span class="chip-pill" onclick="fillStudentDemo('Amrut Kumar', '2102090012')">Amrut (2102090012)</span>
+              <span class="chip-pill" onclick="fillStudentDemo('Sneha Patel', '2102090045')">Sneha (2102090045)</span>
+              <span class="chip-pill" onclick="fillStudentDemo('Rohan Verma', '2102090078')">Rohan (2102090078)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 3: STAFF LOGIN PAGE                               -->
+    <!-- ======================================================= -->
+    <section id="viewStaffLogin" style="display: none;">
+      <div class="login-view-wrapper">
+        <button class="btn-back-home" id="btnBackFromStaffLogin">
+          <span>←</span> Back to Home
+        </button>
+
+        <div class="login-card">
+          <div class="login-header">
+            <div class="login-icon-avatar staff">👨‍🍳</div>
+            <h2>Staff Portal Login</h2>
+            <p>Sign in to launch mess lines and serve students in queue.</p>
+          </div>
+
+          <form id="staffLoginForm">
+            <div class="form-group">
+              <label class="form-label" for="loginStaffName">Staff / Chef Name</label>
+              <input type="text" id="loginStaffName" class="form-input" placeholder="e.g. Chef Ramesh" required autocomplete="name">
+            </div>
+
+            <button type="submit" class="btn-submit-auth" id="btnSubmitStaffLogin">
+              <span>Enter Staff Counter Management</span> ➔
+            </button>
+          </form>
+
+          <div class="preset-auth-chips">
+            <span class="label">Quick Demo Staff:</span>
+            <div class="quick-chips">
+              <span class="chip-pill" onclick="fillStaffDemo('Chef Ramesh')">Chef Ramesh</span>
+              <span class="chip-pill" onclick="fillStaffDemo('Chef Mohan')">Chef Mohan</span>
+              <span class="chip-pill" onclick="fillStaffDemo('Pulaha Mess Incharge')">Mess Incharge</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 4: STUDENT DASHBOARD (Joined Queues & Counters)    -->
+    <!-- ======================================================= -->
+    <section id="viewStudentDashboard" style="display: none;">
+      <!-- Active Line Ticket (Shown when user is queued) -->
+      <div class="active-ticket-wrapper" id="activeTicketWrapper" style="display: none;">
+        <div class="active-ticket">
+          <div class="ticket-header">
+            <div>
+              <div class="ticket-status-tag">
+                <span>🎫</span> Your Active Queue Ticket
+              </div>
+              <div class="ticket-line-title">
+                <span id="ticketLineName">Counter 1 - Deluxe Veg Thali</span>
+                <span class="food-badge veg" id="ticketFoodBadge">🌿 Pure Veg</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Served by</span>
+              <strong style="color: var(--text-primary);" id="ticketStaffName">Chef Ramesh</strong>
+            </div>
+          </div>
+
+          <div class="ticket-body">
+            <!-- Position -->
+            <div class="ticket-metric">
+              <div class="ticket-metric-label">Your Position in Line</div>
+              <div class="ticket-position-number" id="ticketPosition">#1</div>
+              <div class="ticket-subtext" id="ticketPositionNote">You are next in line!</div>
+            </div>
+
+            <!-- Estimated Wait Countdown (Dynamic JS Time calculation) -->
+            <div class="ticket-metric">
+              <div class="ticket-metric-label">Estimated Wait</div>
+              <div class="ticket-countdown" id="ticketCountdown">~0m 40s</div>
+              <div class="ticket-subtext" id="ticketPaceNote">Based on ~40s avg serving pace</div>
+            </div>
+
+            <!-- Elapsed Time in Queue -->
+            <div class="ticket-metric">
+              <div class="ticket-metric-label">Time Elapsed in Queue</div>
+              <div class="ticket-elapsed" id="ticketElapsed">00:00</div>
+              <div class="ticket-subtext">Live ticker since you joined</div>
+            </div>
+          </div>
+
+          <!-- Current Queue Menu -->
+          <div class="ticket-menu-container">
+            <div class="ticket-menu-header">
+              <span>📋</span> Menu Served at this Counter:
+            </div>
+            <div class="menu-tags-list" id="ticketMenuList">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Action: Leave Queue -->
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-leave-queue" id="btnLeaveActiveQueue">
+              <span>🚪</span> Leave This Queue
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Counters Section -->
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Serving Counters</h2>
+          <p>Join any queue. Joining another line automatically switches your spot without double-queueing.</p>
+        </div>
+
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all" id="filterAllBtn">All Counters</button>
+          <button class="filter-btn" data-filter="veg" id="filterVegBtn">🌿 Veg Only</button>
+          <button class="filter-btn" data-filter="non-veg" id="filterNonVegBtn">🍗 Non-Veg</button>
+        </div>
+      </div>
+
+      <!-- Counters Grid -->
+      <div class="counters-grid" id="countersGrid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 5: STAFF DASHBOARD (Queue Controller & Dequeue)    -->
+    <!-- ======================================================= -->
+    <section id="viewStaffDashboard" style="display: none;">
+      <!-- Staff Actions Header -->
+      <div class="staff-actions-bar">
+        <div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.2rem;">Staff Counter Management</h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem;">Select a counter, serve students in queue one by one, or create new lines with custom menus.</p>
+        </div>
+        <button class="btn-create-counter" id="btnOpenCreateCounterModal">
+          <span>➕</span> Create New Queue with Custom Menu
+        </button>
+      </div>
+
+      <!-- Staff Counters Container -->
+      <div id="staffCountersContainer">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL: CREATE MESS LINE ==================== -->
+  <div class="modal-backdrop" id="createCounterModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">🚀 Create New Mess Line</h3>
+        <button class="btn-close-modal" id="btnCloseCreateModal">&times;</button>
+      </div>
+
+      <form id="createCounterForm">
+        <div class="form-group">
+          <label class="form-label" for="inputLineName">Serving Line Name</label>
+          <input type="text" id="inputLineName" class="form-input" placeholder="e.g. Counter 3 - South Dining" required>
+          <div class="quick-chips">
+            <span class="chip-pill" onclick="setLineNamePreset('Counter 1 - Deluxe Veg Thali')">Counter 1</span>
+            <span class="chip-pill" onclick="setLineNamePreset('Counter 2 - Special Non-Veg')">Counter 2</span>
+            <span class="chip-pill" onclick="setLineNamePreset('Counter 3 - Express Thali')">Express Line</span>
+            <span class="chip-pill" onclick="setLineNamePreset('Counter 4 - Evening Snacks & Chai')">Snack Counter</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Food Category</label>
+          <div class="radio-chips">
+            <label class="radio-chip">
+              <input type="radio" name="foodType" value="veg" checked>
+              <div class="chip-content veg-choice">
+                <span>🌿</span> Pure Veg
+              </div>
+            </label>
+            <label class="radio-chip">
+              <input type="radio" name="foodType" value="non-veg">
+              <div class="chip-content nonveg-choice">
+                <span>🍗</span> Non-Veg
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inputStaffName">Staff In Charge</label>
+          <input type="text" id="inputStaffName" class="form-input" placeholder="e.g. Chef Suresh" value="Chef Ramesh">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inputMenu">Custom Menu Items (comma-separated)</label>
+          <textarea id="inputMenu" class="form-input" rows="3" placeholder="Paneer Butter Masala, Dal Makhani, Jeera Rice, Tandoori Roti, Gulab Jamun"></textarea>
+          <div class="quick-chips">
+            <span class="chip-pill" onclick="appendDishPreset('Paneer Butter Masala')">+ Paneer Butter Masala</span>
+            <span class="chip-pill" onclick="appendDishPreset('Yellow Dal Tadka')">+ Dal Tadka</span>
+            <span class="chip-pill" onclick="appendDishPreset('Jeera Rice')">+ Jeera Rice</span>
+            <span class="chip-pill" onclick="appendDishPreset('Chicken Dum Biryani')">+ Chicken Biryani</span>
+            <span class="chip-pill" onclick="appendDishPreset('Egg Curry')">+ Egg Curry</span>
+            <span class="chip-pill" onclick="appendDishPreset('Tandoori Roti')">+ Roti</span>
+            <span class="chip-pill" onclick="appendDishPreset('Gulab Jamun')">+ Gulab Jamun</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelCreateModal">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSubmitCreateLine">Launch Serving Line</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Application Script -->
+  <script src="/app.js"></script>
+</body>
+</html>
