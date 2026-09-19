@@ -6,14 +6,13 @@ const { signUser, requireAuth } = require("./auth");
 const queue = require("./queue");
 
 const app = express();
-const origin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 
 app.use(
   cors({
-    origin,
-    credentials: true,
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "*",
+    methods: "*",
+    allowedHeaders: "*",
+    exposedHeaders: "*",
   })
 );
 app.use(express.json());
