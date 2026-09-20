@@ -3,13 +3,6 @@
 node_modules/
 */node_modules/
 
-# Environment Variables & Credentials
-.env
-*.env
-backend/.env
-.env.local
-.env.*.local
-
 # Operating System Files
 Thumbs.db
 .DS_Store

@@ -5,6 +5,8 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
+const MONGODB_URI = "MONGODB_URI=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon";
+
 // Try setting public DNS servers for Atlas SRV, safe failover
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
@@ -217,7 +219,7 @@ async function initDatabase() {
     counters = JSON.parse(JSON.stringify(defaultCounters));
   }
 
-  const uri = process.env.MONGODB_URI;
+  const uri = MONGODB_URI;
   if (!uri) {
     console.log('No MONGODB_URI or MONGODB_URI found. Running in local file-backed mode.');
     dbState.connected = false;
