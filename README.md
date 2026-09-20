@@ -335,25 +335,24 @@ ALLOWED_ORIGINS=*
 DB_CONNECT_STRING=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
 ```
 
-### Step 3: Install Dependencies
+### Step 3: Install & Start Backend
+In a terminal:
 ```bash
-npm run install:all
+cd backend
+npm install
+npm start
+# Backend API will run on http://localhost:3000
 ```
 
-### Step 4: Run Backend Server
-```bash
-npm run start:backend
-# API will start at http://localhost:3000
-```
-
-### Step 5: Run Frontend Server
+### Step 4: Start Frontend
 In a separate terminal:
 ```bash
-npm run start:frontend
-# Frontend will serve at http://localhost:5000
+cd frontend
+npm start
+# Frontend will serve on http://localhost:5000 (or via VS Code Live Server)
 ```
 
-Open `http://localhost:5000` in your web browser. The frontend on port 5000 will communicate with the backend on port 3000 via CORS seamlessly!
+Open `http://localhost:5000` in your web browser. The frontend on port 5000 connects to the backend on port 3000 via CORS seamlessly!
 
 ---
 

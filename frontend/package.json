@@ -1,0 +1,17 @@
+{
+  "name": "mealsync-frontend",
+  "version": "1.0.0",
+  "description": "MealSync Frontend - Smart Mess Management System (Vercel Ready)",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx --yes serve -s . -p 5000",
+    "dev": "npx --yes serve -s . -p 5000"
+  },
+  "keywords": [
+    "mealsync",
+    "frontend",
+    "vercel"
+  ],
+  "author": "Amrut Kumar Meher",
+  "license": "ISC"
+}
