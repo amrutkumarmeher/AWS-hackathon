@@ -1,7 +1,7 @@
 {
   "name": "mealsync",
   "version": "1.0.0",
-  "description": "**MealSync** is a smart mess management system designed to simplify and organize hostel mess operations. It helps manage meal schedules, student attendance, menu details, meal bookings, and feedback efficiently through a single platform. The system reduces manual work, improves transparency, and makes mess management more convenient for both students and administrators.",
+  "description": "MealSync - Smart Mess Management System (Decoupled Architecture: Vercel Frontend + Render Backend)",
   "keywords": [
     "meal",
     "mess",
@@ -9,7 +9,10 @@
     "lunch",
     "breakfast",
     "hostel",
-    "queue"
+    "queue",
+    "vercel",
+    "render",
+    "cors"
   ],
   "homepage": "https://github.com/amrutkumarmeher/AWS-hackathon#readme",
   "bugs": {
@@ -21,13 +24,16 @@
   },
   "license": "ISC",
   "author": "Amrut Kumar Meher",
-  "type": "commonjs",
-  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node backend/server.js",
+    "start:backend": "node backend/server.js",
+    "start:frontend": "npx --yes serve frontend -p 5000",
+    "dev:backend": "node backend/server.js",
+    "backend": "npm --prefix backend start",
+    "install:all": "npm --prefix backend install"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
     "mongodb": "^7.6.0"

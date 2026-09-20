@@ -1,0 +1,26 @@
+{
+  "name": "mealsync-backend",
+  "version": "1.0.0",
+  "description": "MealSync Backend API - Smart Mess Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "mongodb": "^7.6.0"
+  },
+  "keywords": [
+    "meal",
+    "mess",
+    "queue",
+    "express",
+    "api",
+    "render"
+  ],
+  "author": "Amrut Kumar Meher",
+  "license": "ISC"
+}
