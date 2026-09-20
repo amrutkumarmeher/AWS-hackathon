@@ -20,9 +20,12 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 // ==================== CORS CONFIGURATION ====================
 const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
-let allowedOrigins = ['*'];
+let allowedOrigins = ['https://aws-hackathon-six.vercel.app', '*'];
 if (allowedOriginsEnv && allowedOriginsEnv !== '*') {
   allowedOrigins = allowedOriginsEnv.split(',').map(s => s.trim()).filter(Boolean);
+  if (!allowedOrigins.includes('https://aws-hackathon-six.vercel.app')) {
+    allowedOrigins.push('https://aws-hackathon-six.vercel.app');
+  }
 }
 
 const corsOptions = {
@@ -32,15 +35,15 @@ const corsOptions = {
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    // Allow all Vercel deployment preview domains
-    if (/^https?:\/\/.*\.vercel\.app$/.test(origin)) {
+    // Allow all Vercel deployment domains (production and preview)
+    if (/^https?:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(origin)) {
       return callback(null, true);
     }
     // Allow localhost and 127.0.0.1 for local dev
     if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
-    return callback(null, true); // Permissive safe fallback for cross-origin APIs
+    return callback(null, true); // Safe fallback
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -211,9 +214,9 @@ async function initDatabase() {
     counters = JSON.parse(JSON.stringify(defaultCounters));
   }
 
-  const uri = process.env.DB_CONNECT_STRING;
+  const uri = process.env.MONGODB_URI || process.env.DB_CONNECT_STRING;
   if (!uri) {
-    console.log('No DB_CONNECT_STRING found. Running in local file-backed mode.');
+    console.log('No MONGODB_URI or DB_CONNECT_STRING found. Running in local file-backed mode.');
     dbState.connected = false;
     dbState.provider = 'Local File Store';
     saveLocalStore();
@@ -505,7 +508,7 @@ app.delete('/api/admin/schedules/:id', async (req, res) => {
   const removed = schedules.splice(idx, 1)[0];
   saveLocalStore();
   if (schedulesCollection) {
-    try { await schedulesCollection.deleteOne({ id: req.params.id }); } catch (e) {}
+    try { await schedulesCollection.deleteOne({ id: req.params.id }); } catch (e) { }
   }
   broadcast('schedules_updated', { deletedId: req.params.id });
   res.json({ success: true, message: `Removed "${removed.mealName}" schedule.` });
@@ -658,7 +661,7 @@ app.post('/api/counters/:id/serve-next', async (req, res) => {
 
   const served = counter.queue.shift();
   const now = Date.now();
-  const duration = counter.lastServeTime 
+  const duration = counter.lastServeTime
     ? Math.max(15, Math.min(120, Math.round((now - counter.lastServeTime) / 1000)))
     : Math.max(15, Math.min(90, Math.round((now - served.joinedAt) / 1000)));
 
@@ -862,7 +865,7 @@ app.delete('/api/admin/counters/:id', async (req, res) => {
   const removed = counters.splice(idx, 1)[0];
   saveLocalStore();
   if (countersCollection) {
-    try { await countersCollection.deleteOne({ id: req.params.id }); } catch (e) {}
+    try { await countersCollection.deleteOne({ id: req.params.id }); } catch (e) { }
   }
   broadcast('counters_updated', { id: req.params.id, deleted: true });
   res.json({ success: true, message: `Deleted counter "${removed.name}".` });

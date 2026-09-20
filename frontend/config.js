@@ -4,22 +4,26 @@
  */
 (function (root) {
   // 1. Check for manual override in localStorage (allows changing API without code changes)
-  const storedApiUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('MEALSYNC_API_BASE_URL') : null;
+  let storedApiUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('MEALSYNC_API_BASE_URL') : null;
+  if (storedApiUrl && storedApiUrl.includes('mealsync-backend.onrender.com')) {
+    storedApiUrl = null;
+    localStorage.removeItem('MEALSYNC_API_BASE_URL');
+  }
 
   // 2. Window-level injected variable (if specified via script or environment)
   const windowApiUrl = typeof window !== 'undefined' ? window.MEALSYNC_API_URL : null;
 
   // 3. Dynamic origin detection:
   // If running on localhost or 127.0.0.1, connect to local backend (http://localhost:3000)
-  // If running on Vercel or cloud host, fallback to your deployed Render URL or current origin
+  // If running on Vercel (aws-hackathon-six.vercel.app), connect to your Render host
   const isLocalHost = typeof window !== 'undefined' && 
     (window.location.hostname === 'localhost' || 
      window.location.hostname === '127.0.0.1' || 
      window.location.hostname === '0.0.0.0' || 
      !window.location.hostname);
 
-  // Set this to your deployed Render URL (e.g. 'https://mealsync-backend.onrender.com')
-  const DEFAULT_PROD_API_URL = 'https://mealsync-backend.onrender.com';
+  // Active production Render Backend URL
+  const DEFAULT_PROD_API_URL = 'https://aws-hackathon-1.onrender.com';
 
   const activeApiBase = (storedApiUrl || windowApiUrl || (isLocalHost ? 'http://localhost:3000' : DEFAULT_PROD_API_URL)).replace(/\/+$/, '');
 

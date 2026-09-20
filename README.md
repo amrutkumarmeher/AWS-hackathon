@@ -117,7 +117,6 @@ AWS-hackathon/
 │       └── mealsync_store.json   # High-reliability local fallback database
 │
 ├── .gitignore                    # Protects .env secrets & node_modules
-├── package.json                  # Root convenience scripts for developers
 └── README.md                     # Comprehensive project documentation
 ```
 
@@ -125,7 +124,7 @@ AWS-hackathon/
 
 ## 🌐 Cross-Origin Resource Sharing (CORS) Setup
 
-Because the frontend is hosted on **Vercel** (`https://your-app.vercel.app`) and the backend is on **Render** (`https://your-api.onrender.com`), the browser enforces the Same-Origin Policy.
+Because the frontend is hosted on **Vercel** (`https://aws-hackathon-six.vercel.app`) and the backend is on **Render** (`https://aws-hackathon-1.onrender.com`), the browser enforces the Same-Origin Policy.
 
 ### Backend CORS Configuration (`backend/server.js`)
 The backend uses the `cors` middleware with custom origin matching:
@@ -279,13 +278,13 @@ Follow these steps to deploy the backend API to [Render](https://render.com/):
 6. Add the following **Environment Variables**:
    - `PORT`: `10000`
    - `HOST`: `0.0.0.0`
-   - `ALLOWED_ORIGINS`: `*` (or your Vercel URL, e.g. `https://mealsync.vercel.app`)
-   - `DB_CONNECT_STRING`: Your MongoDB Atlas connection URI:
+   - `ALLOWED_ORIGINS`: `https://aws-hackathon-six.vercel.app,*`
+   - `MONGODB_URI`: Your MongoDB Atlas connection URI:
      ```
      mongodb+srv://<username>:<password>@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
      ```
 7. Click **Create Web Service**.
-8. Once deployed, copy your Render service URL (e.g. `https://mealsync-backend.onrender.com`).
+8. Once deployed, your Render service will be live at: `https://aws-hackathon-1.onrender.com`.
 
 ---
 
@@ -293,12 +292,10 @@ Follow these steps to deploy the backend API to [Render](https://render.com/):
 
 Follow these steps to deploy the frontend application to [Vercel](https://vercel.com/):
 
-1. Before deploying, update the production backend URL in `frontend/config.js`:
+1. The production backend URL is already pre-configured in `frontend/config.js`:
    ```javascript
-   // Replace with your actual Render service URL:
-   const DEFAULT_PROD_API_URL = 'https://mealsync-backend.onrender.com';
+   const DEFAULT_PROD_API_URL = 'https://aws-hackathon-1.onrender.com';
    ```
-   *(Commit and push this change to GitHub)*.
 2. Sign in to **Vercel** and click **Add New...** ➔ **Project**.
 3. Import your GitHub repository.
 4. In the **Configure Project** screen:
@@ -308,7 +305,7 @@ Follow these steps to deploy the frontend application to [Vercel](https://vercel
    - **Build & Output Settings**: Leave as default (no build step needed).
 5. Click **Deploy**.
 6. Vercel will deploy your static site in under 30 seconds!
-7. Open your Vercel URL (e.g. `https://mealsync.vercel.app`). Notice the green **"System Connected"** pill indicating seamless cross-origin connection to Render!
+7. Open your Vercel URL (`https://aws-hackathon-six.vercel.app`). Notice the green **"System Connected"** pill indicating seamless cross-origin connection to Render (`https://aws-hackathon-1.onrender.com`)!
 
 ---
 
@@ -332,7 +329,7 @@ Create `backend/.env`:
 PORT=3000
 HOST=0.0.0.0
 ALLOWED_ORIGINS=*
-DB_CONNECT_STRING=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
+MONGODB_URI=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
 ```
 
 ### Step 3: Install & Start Backend
@@ -363,7 +360,7 @@ Open `http://localhost:5000` in your web browser. The frontend on port 5000 conn
 | `PORT` | Optional | `3000` (Local) / `10000` (Render) | Port for the Express server to listen on. |
 | `HOST` | Optional | `0.0.0.0` | Host interface address. |
 | `ALLOWED_ORIGINS` | Optional | `*` | Comma-separated list of allowed origins for CORS (e.g. `https://mealsync.vercel.app,http://localhost:5000`). |
-| `DB_CONNECT_STRING` | Recommended | _None_ | MongoDB Atlas connection URI string. If omitted, backend runs in local file fallback mode. |
+| `MONGODB_URI` | Recommended | _None_ | MongoDB Atlas connection URI string. If omitted, backend runs in local file fallback mode. |
 
 ---
 

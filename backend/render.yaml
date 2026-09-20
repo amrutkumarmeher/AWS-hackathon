@@ -12,6 +12,6 @@ services:
       - key: HOST
         value: 0.0.0.0
       - key: ALLOWED_ORIGINS
-        value: "*"
-      - key: DB_CONNECT_STRING
+        value: "https://aws-hackathon-six.vercel.app,*"
+      - key: MONGODB_URI
         sync: false
