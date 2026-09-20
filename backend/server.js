@@ -217,9 +217,9 @@ async function initDatabase() {
     counters = JSON.parse(JSON.stringify(defaultCounters));
   }
 
-  const uri = process.env.MONGODB_URI || process.env.DB_CONNECT_STRING;
+  const uri = process.env.MONGODB_URI;
   if (!uri) {
-    console.log('No MONGODB_URI or DB_CONNECT_STRING found. Running in local file-backed mode.');
+    console.log('No MONGODB_URI or MONGODB_URI found. Running in local file-backed mode.');
     dbState.connected = false;
     dbState.provider = 'Local File Store';
     saveLocalStore();
