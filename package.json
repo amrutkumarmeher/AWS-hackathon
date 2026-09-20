@@ -1,0 +1,12 @@
+{
+  "name": "mealsync",
+  "private": true,
+  "description": "MealSync monorepo — starts the Render backend from the repository root",
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "postinstall": "npm install --prefix backend"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

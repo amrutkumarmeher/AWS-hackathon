@@ -14,10 +14,13 @@ function getApiUrl(endpoint) {
 // Global fetch wrapper to seamlessly route any /api calls to backend host (Render/Localhost)
 const _originalFetch = window.fetch.bind(window);
 window.fetch = function (resource, options) {
-  if (typeof resource === 'string' && resource.startsWith('/api')) {
+  const opts = Object.assign({ credentials: 'omit', mode: 'cors' }, options || {});
+  if (typeof resource === 'string' && (resource.startsWith('/api') || resource === '/api')) {
     resource = getApiUrl(resource);
+  } else if (resource && typeof resource === 'object' && typeof resource.url === 'string' && resource.url.startsWith('/api')) {
+    resource = new Request(getApiUrl(resource.url.replace(window.location.origin, '')), resource);
   }
-  return _originalFetch(resource, options);
+  return _originalFetch(resource, opts);
 };
 
 // UI Live Status Indicator Helper
@@ -1456,21 +1459,59 @@ $('filterNonVegBtn').addEventListener('click', () => {
   renderStudentCounters();
 });
 
+function isMealSyncHealth(data) {
+  return !!(data && (data.status === 'healthy' || data.service === 'MealSync API'));
+}
+
+async function probeBackend() {
+  try {
+    const res = await fetch('/api/health');
+    const data = await res.json();
+    if (res.ok && isMealSyncHealth(data)) {
+      updateLiveStatus(true, 'System Connected');
+      return true;
+    }
+    updateLiveStatus(false, 'Render is not running MealSync API');
+    return false;
+  } catch (e) {
+    updateLiveStatus(false, 'Connecting to Render...');
+    return false;
+  }
+}
+
 // Real-Time SSE with Cross-Origin Connection Support
+let sseHandle = null;
+let sseRetryMs = 1000;
+
 function setupSSE() {
   try {
+    if (sseHandle) {
+      sseHandle.close();
+      sseHandle = null;
+    }
     const sseUrl = getApiUrl('/api/stream');
     const es = new EventSource(sseUrl);
+    sseHandle = es;
 
     es.onopen = () => {
+      sseRetryMs = 1000;
       updateLiveStatus(true);
     };
 
     es.onerror = () => {
-      updateLiveStatus(false);
+      updateLiveStatus(false, 'Connecting to Render...');
+      es.close();
+      sseHandle = null;
+      setTimeout(() => setupSSE(), sseRetryMs);
+      sseRetryMs = Math.min(sseRetryMs * 2, 15000);
     };
 
     es.addEventListener('connected', () => {
+      sseRetryMs = 1000;
+      updateLiveStatus(true);
+    });
+
+    es.addEventListener('ping', () => {
       updateLiveStatus(true);
     });
 
@@ -1552,12 +1593,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   registerServiceWorker();
   initSession();
+  await probeBackend();
   await fetchAnnouncement();
   await fetchCounters();
   await fetchSchedules();
   await checkStudentStatus();
   setupSSE();
   setInterval(() => {
+    probeBackend();
     fetchCounters();
     checkStudentStatus();
   }, 6000);

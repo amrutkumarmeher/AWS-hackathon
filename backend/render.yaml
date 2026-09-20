@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mealsync-backend
+    name: aws-hackathon-1
     env: node
     plan: free
     buildCommand: npm install

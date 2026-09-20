@@ -18,7 +18,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
+app.set('trust proxy', 1);
+
 // ==================== CORS CONFIGURATION ====================
+// EventSource and fetch from Vercel cannot use Access-Control-Allow-Origin: *
+// together with Access-Control-Allow-Credentials: true. Echo the request origin
+// and do not require credentials (the API is token-free JSON).
 const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
 let allowedOrigins = ['https://aws-hackathon-six.vercel.app', '*'];
 if (allowedOriginsEnv && allowedOriginsEnv !== '*') {
@@ -30,24 +35,22 @@ if (allowedOriginsEnv && allowedOriginsEnv !== '*') {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, mobile apps, server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      return callback(null, origin);
     }
-    // Allow all Vercel deployment domains (production and preview)
     if (/^https?:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(origin)) {
-      return callback(null, true);
+      return callback(null, origin);
     }
-    // Allow localhost and 127.0.0.1 for local dev
     if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-      return callback(null, true);
+      return callback(null, origin);
     }
-    return callback(null, true); // Safe fallback
+    return callback(null, origin);
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true
+  credentials: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
@@ -392,30 +395,95 @@ app.get('/', (req, res) => {
   });
 });
 
-// Dedicated Health Check endpoint (for Render health check monitor)
-app.get('/api/health', (req, res) => {
-  const isHealthy = true;
-  res.status(isHealthy ? 200 : 503).json({
-    status: isHealthy ? 'healthy' : 'degraded',
+function healthPayload() {
+  return {
+    ok: true,
+    service: 'MealSync API',
+    status: 'healthy',
     uptime: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     database: dbState,
     activeSseClients: sseClients.size,
     countersTotal: counters.length,
     servesLogged: servesLog.length
+  };
+}
+
+// Dedicated Health Check endpoint (for Render health check monitor)
+app.get('/api/health', (req, res) => {
+  res.status(200).json(healthPayload());
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json(healthPayload());
+});
+
+const API_CATALOG = [
+  { method: 'GET', path: '/' },
+  { method: 'GET', path: '/health' },
+  { method: 'GET', path: '/api' },
+  { method: 'GET', path: '/api/health' },
+  { method: 'GET', path: '/api/stream' },
+  { method: 'GET', path: '/api/settings' },
+  { method: 'GET', path: '/api/schedules' },
+  { method: 'GET', path: '/api/counters' },
+  { method: 'POST', path: '/api/counters' },
+  { method: 'POST', path: '/api/counters/:id/join' },
+  { method: 'POST', path: '/api/counters/:id/leave' },
+  { method: 'POST', path: '/api/counters/:id/serve-next' },
+  { method: 'POST', path: '/api/counters/:id/close' },
+  { method: 'GET', path: '/api/student-status' },
+  { method: 'POST', path: '/api/auth/student-login' },
+  { method: 'POST', path: '/api/auth/staff-login' },
+  { method: 'POST', path: '/api/auth/admin-login' },
+  { method: 'POST', path: '/api/admin/schedules' },
+  { method: 'POST', path: '/api/admin/schedules/:id/toggle' },
+  { method: 'DELETE', path: '/api/admin/schedules/:id' },
+  { method: 'GET', path: '/api/admin/overview' },
+  { method: 'GET', path: '/api/admin/settings' },
+  { method: 'POST', path: '/api/admin/settings' },
+  { method: 'PUT', path: '/api/admin/settings' },
+  { method: 'PATCH', path: '/api/admin/settings' },
+  { method: 'POST', path: '/api/admin/counters/:id/settings' },
+  { method: 'POST', path: '/api/admin/counters/:id/reopen' },
+  { method: 'DELETE', path: '/api/admin/counters/:id' },
+  { method: 'POST', path: '/api/admin/counters/:id/kick' },
+  { method: 'POST', path: '/api/admin/counters/:id/clear' },
+  { method: 'GET', path: '/api/admin/serves' },
+  { method: 'GET', path: '/api/admin/export-serves.csv' }
+];
+
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    service: 'MealSync API',
+    endpoints: API_CATALOG
   });
 });
 
 // ==================== SSE EVENT STREAM ====================
 app.get('/api/stream', (req, res) => {
+  const origin = req.headers.origin || '*';
   res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.flushHeaders?.();
   sseClients.add(res);
   res.write(`event: connected\ndata: ${JSON.stringify({ time: Date.now() })}\n\n`);
-  req.on('close', () => sseClients.delete(res));
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(`event: ping\ndata: ${JSON.stringify({ time: Date.now() })}\n\n`);
+    } catch (e) {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    }
+  }, 15000);
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
 });
 
 // ==================== AUTHENTICATION ====================
@@ -449,6 +517,10 @@ app.post('/api/auth/admin-login', (req, res) => {
 
 // System Settings
 app.get('/api/settings', (req, res) => {
+  res.json({ success: true, settings: adminSettings });
+});
+
+app.get('/api/admin/settings', (req, res) => {
   res.json({ success: true, settings: adminSettings });
 });
 
@@ -809,9 +881,8 @@ app.get('/api/admin/overview', (req, res) => {
   });
 });
 
-// Update Global Admin Settings
-app.post('/api/admin/settings', async (req, res) => {
-  const { defaultMaxQueueSize, announcement } = req.body;
+async function updateAdminSettings(req, res) {
+  const { defaultMaxQueueSize, announcement } = req.body || {};
   if (defaultMaxQueueSize && parseInt(defaultMaxQueueSize, 10) > 0) {
     adminSettings.defaultMaxQueueSize = parseInt(defaultMaxQueueSize, 10);
   }
@@ -823,7 +894,12 @@ app.post('/api/admin/settings', async (req, res) => {
   broadcast('settings_updated', adminSettings);
   broadcast('counters_updated', {});
   res.json({ success: true, settings: adminSettings });
-});
+}
+
+// Update Global Admin Settings
+app.post('/api/admin/settings', updateAdminSettings);
+app.put('/api/admin/settings', updateAdminSettings);
+app.patch('/api/admin/settings', updateAdminSettings);
 
 // Update Per-Counter Max Queue Size
 app.post('/api/admin/counters/:id/settings', async (req, res) => {
@@ -945,6 +1021,22 @@ app.get('/api/admin/export-serves.csv', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Disposition', `attachment; filename="mealsync_serve_logs_${Date.now()}.csv"`);
   res.send(csvContent);
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && Object.prototype.hasOwnProperty.call(err, 'body')) {
+    return res.status(400).json({ success: false, message: 'Invalid JSON body.' });
+  }
+  return next(err);
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Unknown endpoint ${req.method} ${req.path}`,
+    service: 'MealSync API',
+    endpoints: API_CATALOG
+  });
 });
 
 // Start Server

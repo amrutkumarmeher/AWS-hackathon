@@ -1,34 +1,43 @@
 /**
  * MealSync Frontend Configuration
- * Manages API endpoint connection between Vercel and Render (or Local Development)
+ * Routes every /api call to the Render backend (or an explicit override).
  */
 (function (root) {
-  // 1. Check for manual override in localStorage (allows changing API without code changes)
+  const DEFAULT_PROD_API_URL = 'https://aws-hackathon-1.onrender.com';
+  const LOCAL_API_URL = 'http://localhost:3000';
+
+  const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  if (params && params.get('api')) {
+    try {
+      localStorage.setItem('MEALSYNC_API_BASE_URL', params.get('api').replace(/\/+$/, ''));
+    } catch (e) {}
+  }
+
   let storedApiUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('MEALSYNC_API_BASE_URL') : null;
   if (storedApiUrl && storedApiUrl.includes('mealsync-backend.onrender.com')) {
     storedApiUrl = null;
-    localStorage.removeItem('MEALSYNC_API_BASE_URL');
+    try { localStorage.removeItem('MEALSYNC_API_BASE_URL'); } catch (e) {}
   }
 
-  // 2. Window-level injected variable (if specified via script or environment)
   const windowApiUrl = typeof window !== 'undefined' ? window.MEALSYNC_API_URL : null;
-
-  // 3. Dynamic origin detection:
-  // If running on localhost or 127.0.0.1, connect to local backend (http://localhost:3000)
-  // If running on Vercel (aws-hackathon-six.vercel.app), connect to your Render host
-  const isLocalHost = typeof window !== 'undefined' && 
-    (window.location.hostname === 'localhost' || 
-     window.location.hostname === '127.0.0.1' || 
-     window.location.hostname === '0.0.0.0' || 
+  const isLocalHost = typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname === '0.0.0.0' ||
      !window.location.hostname);
 
-  // Active production Render Backend URL
-  const DEFAULT_PROD_API_URL = 'https://aws-hackathon-1.onrender.com';
+  const forceLocal = params && (params.get('local') === '1' || params.get('api') === 'local');
+  const useLocalBackend = forceLocal || (storedApiUrl && /localhost|127\.0\.0\.1/.test(storedApiUrl));
 
-  const activeApiBase = (storedApiUrl || windowApiUrl || (isLocalHost ? 'http://localhost:3000' : DEFAULT_PROD_API_URL)).replace(/\/+$/, '');
+  const activeApiBase = (
+    windowApiUrl ||
+    (useLocalBackend ? (storedApiUrl && /localhost|127\.0\.0\.1/.test(storedApiUrl) ? storedApiUrl : LOCAL_API_URL) : (storedApiUrl || DEFAULT_PROD_API_URL))
+  ).replace(/\/+$/, '');
 
   root.MEALSYNC_CONFIG = {
     API_BASE_URL: activeApiBase,
+    DEFAULT_PROD_API_URL,
+    LOCAL_API_URL,
     isLocal: isLocalHost,
     setApiBaseUrl: function (url) {
       if (!url) {
