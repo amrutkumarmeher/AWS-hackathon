@@ -7,7 +7,6 @@ const { MongoClient } = require('mongodb');
 
 const MONGODB_URI = "MONGODB_URI=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon";
 
-// Try setting public DNS servers for Atlas SRV, safe failover
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
 } catch (e) {
@@ -22,10 +21,6 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 app.set('trust proxy', 1);
 
-// ==================== CORS CONFIGURATION ====================
-// EventSource and fetch from Vercel cannot use Access-Control-Allow-Origin: *
-// together with Access-Control-Allow-Credentials: true. Echo the request origin
-// and do not require credentials (the API is token-free JSON).
 const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
 let allowedOrigins = ['https://aws-hackathon-six.vercel.app', '*'];
 if (allowedOriginsEnv && allowedOriginsEnv !== '*') {
@@ -60,11 +55,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// File-backed persistence path for fail-safe local storage
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'mealsync_store.json');
 
-// In-memory data structures
 let counters = [];
 let servesLog = [];
 let adminSettings = {
@@ -72,7 +65,6 @@ let adminSettings = {
   announcement: 'Welcome to Hostel Mess. Please follow your counter line and keep your token ready.'
 };
 
-// Queue Scheduling Data
 let schedules = [
   {
     id: 'sched-1',
@@ -118,7 +110,6 @@ let servesCollection = null;
 let settingsCollection = null;
 let schedulesCollection = null;
 
-// Track Database Connection State for monitoring & health checks
 const dbState = {
   connected: false,
   provider: 'Local File Store',
@@ -126,7 +117,6 @@ const dbState = {
   error: null
 };
 
-// Initial default counters for Mess
 const defaultCounters = [
   {
     id: 'counter-1',
@@ -178,7 +168,6 @@ const defaultCounters = [
   }
 ];
 
-// Helper: load from file store
 function loadLocalStore() {
   try {
     if (fs.existsSync(STORE_FILE)) {
@@ -199,7 +188,6 @@ function loadLocalStore() {
   return false;
 }
 
-// Helper: save to file store
 function saveLocalStore() {
   try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -212,7 +200,6 @@ function saveLocalStore() {
   }
 }
 
-// Connect to MongoDB Atlas (with local file backup)
 async function initDatabase() {
   const loaded = loadLocalStore();
   if (!loaded || counters.length === 0) {
@@ -229,7 +216,7 @@ async function initDatabase() {
   }
 
   try {
-    // 10s connection and server selection timeout to handle cold-starts on Render
+
     const client = new MongoClient(uri, { serverSelectionTimeoutMS: 10000, connectTimeoutMS: 10000 });
     await client.connect();
     const db = client.db('mealsync');
@@ -244,7 +231,6 @@ async function initDatabase() {
     dbState.lastConnected = new Date().toISOString();
     dbState.error = null;
 
-    // Sync Counters
     const docs = await countersCollection.find({}).toArray();
     if (docs && docs.length > 0) {
       counters = docs.map(({ _id, ...rest }) => rest);
@@ -254,13 +240,11 @@ async function initDatabase() {
       }
     }
 
-    // Sync Serves Log
     const recentServes = await servesCollection.find({}).sort({ timestamp: -1 }).limit(1000).toArray();
     if (recentServes && recentServes.length > 0) {
       servesLog = recentServes.map(({ _id, ...rest }) => rest);
     }
 
-    // Sync Schedules
     const dbSchedules = await schedulesCollection.find({}).toArray();
     if (dbSchedules && dbSchedules.length > 0) {
       schedules = dbSchedules.map(({ _id, ...rest }) => rest);
@@ -270,7 +254,6 @@ async function initDatabase() {
       }
     }
 
-    // Sync Settings
     const dbSettings = await settingsCollection.findOne({ id: 'global_settings' });
     if (dbSettings) {
       adminSettings = { ...adminSettings, ...dbSettings };
@@ -348,7 +331,6 @@ function broadcast(event, data) {
 
 const getWait = (pos, avg) => Math.max(0, (pos - 1) * (avg || 40));
 
-// Compute currently active meal session and upcoming slot
 function getCurrentScheduleStatus() {
   const now = new Date();
   const hours = String(now.getHours()).padStart(2, '0');
@@ -367,12 +349,12 @@ function getCurrentScheduleStatus() {
   }
 
   if (!activeSlot) {
-    // Find next upcoming
+
     const futureSlots = enabledList.filter(s => s.startTime > currentTime).sort((a, b) => a.startTime.localeCompare(b.startTime));
     if (futureSlots.length > 0) {
       upcomingSlot = futureSlots[0];
     } else if (enabledList.length > 0) {
-      // First slot next day
+
       upcomingSlot = enabledList.sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
     }
   }
@@ -380,9 +362,6 @@ function getCurrentScheduleStatus() {
   return { activeSlot, upcomingSlot, currentTime };
 }
 
-// ==================== SYSTEM & HEALTH ENDPOINTS ====================
-
-// Root Health & Information Endpoint
 app.get('/', (req, res) => {
   res.json({
     service: 'MealSync API',
@@ -411,7 +390,6 @@ function healthPayload() {
   };
 }
 
-// Dedicated Health Check endpoint (for Render health check monitor)
 app.get('/api/health', (req, res) => {
   res.status(200).json(healthPayload());
 });
@@ -463,7 +441,6 @@ app.get('/api', (req, res) => {
   });
 });
 
-// ==================== SSE EVENT STREAM ====================
 app.get('/api/stream', (req, res) => {
   const origin = req.headers.origin || '*';
   res.setHeader('Content-Type', 'text/event-stream');
@@ -488,9 +465,6 @@ app.get('/api/stream', (req, res) => {
   });
 });
 
-// ==================== AUTHENTICATION ====================
-
-// 1. Student Login: Name + 10-digit Registration Number
 app.post('/api/auth/student-login', (req, res) => {
   const name = String(req.body.studentName || '').trim();
   const regNo = String(req.body.studentId || '').trim();
@@ -499,7 +473,6 @@ app.post('/api/auth/student-login', (req, res) => {
   res.json({ success: true, student: { studentName: name, studentId: regNo, role: 'student' } });
 });
 
-// 2. Staff Login: Name + 5-digit Staff Roll No / Employee ID
 app.post('/api/auth/staff-login', (req, res) => {
   const name = String(req.body.staffName || '').trim();
   const staffRollNo = String(req.body.staffRollNo || req.body.staffId || '').trim();
@@ -508,7 +481,6 @@ app.post('/api/auth/staff-login', (req, res) => {
   res.json({ success: true, staff: { staffName: name, staffRollNo, role: 'staff' } });
 });
 
-// 3. Admin Login: Name + 5-digit Admin Code
 app.post('/api/auth/admin-login', (req, res) => {
   const name = String(req.body.adminName || '').trim();
   const adminCode = String(req.body.adminCode || '').trim();
@@ -517,7 +489,6 @@ app.post('/api/auth/admin-login', (req, res) => {
   res.json({ success: true, admin: { adminName: name, adminCode, role: 'admin' } });
 });
 
-// System Settings
 app.get('/api/settings', (req, res) => {
   res.json({ success: true, settings: adminSettings });
 });
@@ -526,9 +497,6 @@ app.get('/api/admin/settings', (req, res) => {
   res.json({ success: true, settings: adminSettings });
 });
 
-// ==================== QUEUE SCHEDULING ====================
-
-// Public Schedules list with current active session
 app.get('/api/schedules', (req, res) => {
   const status = getCurrentScheduleStatus();
   res.json({
@@ -540,7 +508,6 @@ app.get('/api/schedules', (req, res) => {
   });
 });
 
-// Admin Add Schedule
 app.post('/api/admin/schedules', async (req, res) => {
   const { mealName, startTime, endTime, days, counterIds } = req.body;
   if (!mealName || !startTime || !endTime) {
@@ -563,7 +530,6 @@ app.post('/api/admin/schedules', async (req, res) => {
   res.json({ success: true, schedule: newSchedule });
 });
 
-// Admin Toggle Schedule
 app.post('/api/admin/schedules/:id/toggle', async (req, res) => {
   const sched = schedules.find(s => s.id === req.params.id);
   if (!sched) return res.status(404).json({ success: false, message: 'Schedule slot not found.' });
@@ -574,7 +540,6 @@ app.post('/api/admin/schedules/:id/toggle', async (req, res) => {
   res.json({ success: true, schedule: sched });
 });
 
-// Admin Delete Schedule
 app.delete('/api/admin/schedules/:id', async (req, res) => {
   const idx = schedules.findIndex(s => s.id === req.params.id);
   if (idx === -1) return res.status(404).json({ success: false, message: 'Schedule slot not found.' });
@@ -588,9 +553,6 @@ app.delete('/api/admin/schedules/:id', async (req, res) => {
   res.json({ success: true, message: `Removed "${removed.mealName}" schedule.` });
 });
 
-// ==================== COUNTER OPERATIONS ====================
-
-// Get all active counters
 app.get('/api/counters', (req, res) => {
   const list = counters.filter(c => c.status === 'active').map(c => {
     const queue = (c.queue || []).map((s, i) => ({
@@ -630,7 +592,6 @@ app.get('/api/counters', (req, res) => {
   });
 });
 
-// Create New Line / Counter
 app.post('/api/counters', async (req, res) => {
   const { name, foodType, menu, staffName, staffRollNo, maxQueueSize } = req.body;
   if (!name || !foodType) return res.status(400).json({ success: false, message: 'Counter name and food type are required.' });
@@ -662,7 +623,6 @@ app.post('/api/counters', async (req, res) => {
   res.json({ success: true, counter: newCounter });
 });
 
-// Join Queue
 app.post('/api/counters/:id/join', async (req, res) => {
   const regNo = String(req.body.studentId || '').trim();
   const name = String(req.body.studentName || '').trim();
@@ -712,7 +672,6 @@ app.post('/api/counters/:id/join', async (req, res) => {
   });
 });
 
-// Leave Queue
 app.post('/api/counters/:id/leave', async (req, res) => {
   const regNo = String(req.body.studentId || '').trim();
   const counter = counters.find(c => c.id === req.params.id);
@@ -727,7 +686,6 @@ app.post('/api/counters/:id/leave', async (req, res) => {
   res.json({ success: true, message: `Left queue at ${counter.name}.` });
 });
 
-// Serve Next Student & Log into Database
 app.post('/api/counters/:id/serve-next', async (req, res) => {
   const counter = counters.find(c => c.id === req.params.id && c.status === 'active');
   if (!counter) return res.status(404).json({ success: false, message: 'Counter not found or inactive.' });
@@ -754,7 +712,6 @@ app.post('/api/counters/:id/serve-next', async (req, res) => {
 
   await saveCounter(counter);
 
-  // Permanent Database Audit Log Entry
   const serveEntry = {
     serveId: 'SRV-' + now + '-' + Math.floor(Math.random() * 1000),
     counterId: counter.id,
@@ -789,7 +746,6 @@ app.post('/api/counters/:id/serve-next', async (req, res) => {
   });
 });
 
-// Close Counter
 app.post('/api/counters/:id/close', async (req, res) => {
   const counter = counters.find(c => c.id === req.params.id);
   if (!counter) return res.status(404).json({ success: false, message: 'Counter not found.' });
@@ -800,7 +756,6 @@ app.post('/api/counters/:id/close', async (req, res) => {
   res.json({ success: true, message: `Closed "${counter.name}".` });
 });
 
-// Student Status Check
 app.get('/api/student-status', (req, res) => {
   const regNo = String(req.query.studentId || '').trim();
   if (!regNo) return res.status(400).json({ inQueue: false });
@@ -836,9 +791,6 @@ app.get('/api/student-status', (req, res) => {
   res.json({ inQueue: false });
 });
 
-// ==================== ADMIN MANAGEMENT ENDPOINTS ====================
-
-// Admin Overview
 app.get('/api/admin/overview', (req, res) => {
   let totalQueued = 0;
   let totalServedHistory = 0;
@@ -898,12 +850,10 @@ async function updateAdminSettings(req, res) {
   res.json({ success: true, settings: adminSettings });
 }
 
-// Update Global Admin Settings
 app.post('/api/admin/settings', updateAdminSettings);
 app.put('/api/admin/settings', updateAdminSettings);
 app.patch('/api/admin/settings', updateAdminSettings);
 
-// Update Per-Counter Max Queue Size
 app.post('/api/admin/counters/:id/settings', async (req, res) => {
   const counter = counters.find(c => c.id === req.params.id);
   if (!counter) return res.status(404).json({ success: false, message: 'Counter not found.' });
@@ -924,7 +874,6 @@ app.post('/api/admin/counters/:id/settings', async (req, res) => {
   res.json({ success: true, counter });
 });
 
-// Reopen a Closed Counter
 app.post('/api/admin/counters/:id/reopen', async (req, res) => {
   const counter = counters.find(c => c.id === req.params.id);
   if (!counter) return res.status(404).json({ success: false, message: 'Counter not found.' });
@@ -935,7 +884,6 @@ app.post('/api/admin/counters/:id/reopen', async (req, res) => {
   res.json({ success: true, message: `Counter "${counter.name}" reopened successfully.` });
 });
 
-// Delete Counter Permanently
 app.delete('/api/admin/counters/:id', async (req, res) => {
   const idx = counters.findIndex(c => c.id === req.params.id);
   if (idx === -1) return res.status(404).json({ success: false, message: 'Counter not found.' });
@@ -949,7 +897,6 @@ app.delete('/api/admin/counters/:id', async (req, res) => {
   res.json({ success: true, message: `Deleted counter "${removed.name}".` });
 });
 
-// Moderate Queue: Kick a student
 app.post('/api/admin/counters/:id/kick', async (req, res) => {
   const regNo = String(req.body.studentId || '').trim();
   const counter = counters.find(c => c.id === req.params.id);
@@ -964,7 +911,6 @@ app.post('/api/admin/counters/:id/kick', async (req, res) => {
   res.json({ success: true, message: `Removed ${removed.studentName} (${regNo}) from ${counter.name}.` });
 });
 
-// Moderate Queue: Clear whole queue
 app.post('/api/admin/counters/:id/clear', async (req, res) => {
   const counter = counters.find(c => c.id === req.params.id);
   if (!counter) return res.status(404).json({ success: false, message: 'Counter not found.' });
@@ -976,7 +922,6 @@ app.post('/api/admin/counters/:id/clear', async (req, res) => {
   res.json({ success: true, message: `Cleared ${count} student(s) from ${counter.name}.` });
 });
 
-// Serve Audit Logs
 app.get('/api/admin/serves', (req, res) => {
   const { counterId, foodType, query, limit = 100 } = req.query;
   let filtered = [...servesLog];
@@ -1002,7 +947,6 @@ app.get('/api/admin/serves', (req, res) => {
   res.json({ success: true, total: filtered.length, serves: result });
 });
 
-// Export Serves Log to CSV
 app.get('/api/admin/export-serves.csv', (req, res) => {
   const headers = ['Serve ID', 'Timestamp', 'Counter Name', 'Food Type', 'Student Name', 'Registration Number', 'Staff Name', 'Staff Roll No', 'Duration (Seconds)', 'Queue Wait (Seconds)'];
   const rows = servesLog.map(s => [
@@ -1041,7 +985,6 @@ app.use((req, res) => {
   });
 });
 
-// Start Server
 app.listen(PORT, HOST, async () => {
   console.log(`MealSync API Server listening on http://${HOST}:${PORT}`);
   console.log(`CORS enabled for origins: ${Array.isArray(allowedOrigins) ? allowedOrigins.join(', ') : allowedOrigins}`);

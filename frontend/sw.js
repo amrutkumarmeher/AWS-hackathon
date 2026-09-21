@@ -1,4 +1,4 @@
-// MealSync Service Worker for Chrome Web Push & Background Notifications
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -7,7 +7,6 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Handle incoming push messages
 self.addEventListener('push', (event) => {
   let data = { title: 'MealSync Notification', body: 'Update from mess queue.', icon: '/logo.svg' };
   try {
@@ -29,7 +28,6 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// Focus or open window when user clicks notification
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(

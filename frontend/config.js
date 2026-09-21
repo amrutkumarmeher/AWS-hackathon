@@ -1,7 +1,4 @@
-/**
- * MealSync Frontend Configuration
- * Routes every /api call to the Render backend (or an explicit override).
- */
+
 (function (root) {
   const DEFAULT_PROD_API_URL = 'https://aws-hackathon-1.onrender.com';
   const LOCAL_API_URL = 'http://localhost:3000';

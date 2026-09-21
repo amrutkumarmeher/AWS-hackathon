@@ -97,27 +97,27 @@ flowchart LR
 
 ```
 AWS-hackathon/
-├── frontend/                     # Static Web App (Deploy to VERCEL)
-│   ├── index.html                # Main UI layout (Preserved look & feel)
-│   ├── index.css                 # Sleek dark-mode aesthetic & animations
-│   ├── app.js                    # Client logic with CORS routing wrapper
-│   ├── config.js                 # API target config & runtime URL switcher
-│   ├── logo.svg                  # Brand SVG emblem
-│   ├── sw.js                     # Service worker for Web Push notifications
-│   └── vercel.json               # Vercel deployment headers and cache rules
+├── frontend/
+│   ├── index.html
+│   ├── index.css
+│   ├── app.js
+│   ├── config.js
+│   ├── logo.svg
+│   ├── sw.js
+│   └── vercel.json
 │
-├── backend/                      # Node.js & Express API (Deploy to RENDER)
-│   ├── server.js                 # Express server, CORS setup & MongoDB logic
-│   ├── package.json              # Backend dependencies (express, cors, mongodb, dotenv)
-│   ├── package-lock.json         # Pinned dependency versions
-│   ├── .env                      # Local environment configuration
-│   ├── .env.example              # Environment variable template for deployment
-│   ├── render.yaml               # Render blueprint file (1-click deploy)
+├── backend/
+│   ├── server.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── .env
+│   ├── .env.example
+│   ├── render.yaml
 │   └── data/
-│       └── mealsync_store.json   # High-reliability local fallback database
+│       └── mealsync_store.json
 │
-├── .gitignore                    # Protects .env secrets & node_modules
-└── README.md                     # Comprehensive project documentation
+├── .gitignore
+└── README.md
 ```
 
 ---
@@ -139,7 +139,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true);
-    if (/^https?:\/\/.*\.vercel\.app$/.test(origin)) return callback(null, true); // Automatic Vercel preview support
+    if (/^https?:\/\/.*\.vercel\.app$/.test(origin)) return callback(null, true);
     if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
     return callback(null, true);
   },
@@ -329,7 +329,7 @@ Create `backend/.env`:
 PORT=3000
 HOST=0.0.0.0
 ALLOWED_ORIGINS=*
-MONGODB_URI=mongodb+srv://Amrut:Amrut123456@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
+MONGODB_URI=mongodb+srv://<username>:<password>@aws-hackathon.ovrbmec.mongodb.net/?appName=AWS-hackathon
 ```
 
 ### Step 3: Install & Start Backend
@@ -338,7 +338,6 @@ In a terminal:
 cd backend
 npm install
 npm start
-# Backend API will run on http://localhost:3000
 ```
 
 ### Step 4: Start Frontend
@@ -346,7 +345,6 @@ In a separate terminal:
 ```bash
 cd frontend
 npm start
-# Frontend will serve on http://localhost:5000 (or via VS Code Live Server)
 ```
 
 Open `http://localhost:5000` in your web browser. The frontend on port 5000 connects to the backend on port 3000 via CORS seamlessly!
@@ -366,6 +364,6 @@ Open `http://localhost:5000` in your web browser. The frontend on port 5000 conn
 
 ## 👨‍💻 Author & Acknowledgements
 
-- **Developed By**: Amrut Kumar Meher
+- **Developed By**: Amrut Kumar Meher & Karanveer Singh
 - **Project**: AWS Hackathon Hostel Mess Management Initiative
 - **License**: ISC

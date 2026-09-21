@@ -1,11 +1,7 @@
-/* ==========================================================================
-   MealSync - Minimal Hostel Mess Queue System
-   Clean, student-built aesthetic with University Navy Blue & Slate accents.
-   Simple, functional, and fully responsive across mobile, tablet, and desktop.
-   ========================================================================== */
+
 
 :root {
-  /* Color Palette */
+
   --navy-dark: #071e3d;
   --navy-main: #0b2545;
   --blue-primary: #133e87;
@@ -18,20 +14,17 @@
   --amber-light: #f59e0b;
   --amber-soft: #fef3c7;
 
-  /* Surfaces & Borders */
   --bg-page: #f1f5f9;
   --bg-card: #ffffff;
   --bg-muted: #f8fafc;
   --border-color: #e2e8f0;
   --border-dark: #cbd5e1;
 
-  /* Typography */
   --text-heading: #0f172a;
   --text-body: #1e293b;
   --text-muted: #475569;
   --text-light: #64748b;
 
-  /* Food Status Badges */
   --color-veg: #059669;
   --color-veg-bg: #ecfdf5;
   --color-veg-border: #a7f3d0;
@@ -69,7 +62,6 @@ body {
   flex-direction: column;
 }
 
-/* ==================== APP HEADER ==================== */
 .app-header {
   background-color: var(--navy-main);
   color: #ffffff;
@@ -237,7 +229,6 @@ body {
 }
 .btn-logout:hover { background: #fecaca; }
 
-/* ==================== ANNOUNCEMENT BAR ==================== */
 .announcement-bar {
   background: #1e3a8a;
   color: #ffffff;
@@ -265,7 +256,6 @@ body {
   cursor: pointer;
 }
 
-/* ==================== MAIN LAYOUT ==================== */
 .main-container {
   max-width: 1200px;
   width: 100%;
@@ -283,7 +273,6 @@ body {
   to { opacity: 1; }
 }
 
-/* ==================== MINIMAL HERO ==================== */
 .minimal-hero-card {
   background: var(--navy-main);
   border: 1px solid #1e3a8a;
@@ -383,7 +372,6 @@ body {
 }
 .btn-hero-admin:hover { background: rgba(245, 158, 11, 0.28); }
 
-/* ==================== STATS OVERVIEW ==================== */
 .stats-overview-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -471,7 +459,6 @@ body {
   text-transform: uppercase;
 }
 
-/* ==================== MENU SECTION ==================== */
 .menu-overview-section {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -530,7 +517,6 @@ body {
   font-weight: bold;
 }
 
-/* ==================== AUTH CARDS ==================== */
 .auth-wrapper {
   display: flex;
   justify-content: center;
@@ -693,7 +679,6 @@ body {
 }
 .demo-badge-btn:hover { background: #e2e8f0; }
 
-/* ==================== ACTIVE TICKET ==================== */
 .ticket-wrapper-card {
   background: #ffffff;
   border: 2px solid var(--blue-vibrant);
@@ -863,7 +848,6 @@ body {
 }
 .btn-leave-queue:hover { background: #fee2e2; }
 
-/* ==================== PANELS ==================== */
 .panel-container {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -917,7 +901,6 @@ body {
   border-color: var(--blue-primary);
 }
 
-/* ==================== COUNTER CARDS ==================== */
 .counters-responsive-layout {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1030,7 +1013,6 @@ body {
   font-weight: 700;
 }
 
-/* ==================== BADGES ==================== */
 .badge-food-pill {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -1053,7 +1035,6 @@ body {
 .badge-status-pill.active { background: #dcfce7; color: #166534; }
 .badge-status-pill.closed { background: #fee2e2; color: #991b1b; }
 
-/* Scheduling Tags */
 .sched-tag {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -1066,7 +1047,6 @@ body {
 .sched-tag.scheduled { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .sched-tag.disabled { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
-/* ==================== DASHBOARD HEADERS ==================== */
 .dashboard-header-bar {
   display: flex;
   justify-content: space-between;
@@ -1104,7 +1084,6 @@ body {
   cursor: pointer;
 }
 
-/* ==================== STAFF CARDS ==================== */
 .staff-cards-container {
   display: flex;
   flex-direction: column;
@@ -1226,7 +1205,6 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* ==================== TABLES ==================== */
 .table-responsive-container {
   width: 100%;
   overflow-x: auto;
@@ -1259,7 +1237,6 @@ body {
 .data-table.small { font-size: 0.8rem; }
 .data-table.small th, .data-table.small td { padding: 0.45rem 0.65rem; }
 
-/* ==================== ADMIN DASHBOARD ==================== */
 .admin-quick-stats { display: flex; gap: 0.4rem; }
 
 .admin-pill {
@@ -1381,7 +1358,6 @@ body {
   cursor: pointer;
 }
 
-/* Queue Scheduling Form */
 .admin-schedule-form {
   background: var(--bg-muted);
   border: 1px solid var(--border-color);
@@ -1459,7 +1435,6 @@ body {
   gap: 0.35rem;
 }
 
-/* ==================== MODAL ==================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1529,7 +1504,6 @@ body {
   cursor: pointer;
 }
 
-/* ==================== TOASTS ==================== */
 .toast-stack-container {
   position: fixed;
   bottom: 1.25rem;
@@ -1568,7 +1542,6 @@ body {
   grid-column: 1 / -1;
 }
 
-/* ==================== RESPONSIVE BREAKPOINTS ==================== */
 @media (max-width: 768px) {
   .nav-container { flex-direction: column; align-items: stretch; gap: 0.65rem; }
   .nav-center { order: 3; display: flex; justify-content: center; }

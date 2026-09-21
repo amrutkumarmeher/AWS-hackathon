@@ -1,9 +1,5 @@
-/**
- * MealSync - Minimal Hostel Mess Queue System
- * Simple, functional client logic hand-crafted for student dining.
- */
 
-// ==================== CROSS-ORIGIN API RESOLUTION ====================
+
 function getApiUrl(endpoint) {
   if (window.MEALSYNC_CONFIG && typeof window.MEALSYNC_CONFIG.apiUrl === 'function') {
     return window.MEALSYNC_CONFIG.apiUrl(endpoint);
@@ -11,7 +7,6 @@ function getApiUrl(endpoint) {
   return endpoint;
 }
 
-// Global fetch wrapper to seamlessly route any /api calls to backend host (Render/Localhost)
 const _originalFetch = window.fetch.bind(window);
 window.fetch = function (resource, options) {
   const opts = Object.assign({ credentials: 'omit', mode: 'cors' }, options || {});
@@ -23,7 +18,6 @@ window.fetch = function (resource, options) {
   return _originalFetch(resource, opts);
 };
 
-// UI Live Status Indicator Helper
 function updateLiveStatus(connected, customMsg) {
   const statusText = $('liveStatusText');
   const dot = document.querySelector('.live-dot');
@@ -43,10 +37,9 @@ function updateLiveStatus(connected, customMsg) {
   }
 }
 
-// Global Application State
 const state = {
   view: 'home',
-  user: null, // { role: 'student'|'staff'|'admin', name, id, rollNo }
+  user: null,
   counters: [],
   filter: 'all',
   queueStatus: { inQueue: false, counter: null, student: null },
@@ -60,10 +53,8 @@ const state = {
   announcement: ''
 };
 
-// DOM Helper
 const $ = (id) => document.getElementById(id);
 
-// 2-tone melodic notification chime via Web Audio API
 function playNotificationChime() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -93,7 +84,6 @@ function playNotificationChime() {
   } catch (e) {}
 }
 
-// Time Formatting: Starts strictly from 0 min 0 sec
 function fmtTime(totalSec) {
   const s = Math.max(0, Math.floor(totalSec || 0));
   const m = Math.floor(s / 60);
@@ -109,7 +99,6 @@ function fmtWait(sec) {
   return m === 0 ? `${r} sec` : r === 0 ? `${m} min` : `${m} min ${r} sec`;
 }
 
-// Toast Notifications
 function toast(msg, type = 'info') {
   const container = $('toastContainer');
   if (!container) return;
@@ -122,8 +111,6 @@ function toast(msg, type = 'info') {
     setTimeout(() => el.remove(), 300);
   }, 3500);
 }
-
-// ==================== BROWSER NOTIFICATIONS ====================
 
 async function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -165,12 +152,10 @@ async function triggerBrowserNotification(title, body) {
   }
 }
 
-// Rule check: alert when 2 people ahead (pos <= 3) and when next (#1)
 function evaluateNotificationRules(student, counter) {
   if (!student || !counter || !state.notificationsEnabled) return;
   const pos = student.position;
 
-  // RULE: Exactly 2 people ahead of student
   if (pos === 3 && state.lastNotifiedPosition > 3) {
     state.lastNotifiedPosition = 3;
     triggerBrowserNotification(
@@ -180,7 +165,6 @@ function evaluateNotificationRules(student, counter) {
     toast(`🔔 Only 2 people ahead at ${counter.name}! Head to the line.`, 'success');
   }
 
-  // RULE: Next in line (#1)
   if (pos === 1 && state.lastNotifiedPosition > 1) {
     state.lastNotifiedPosition = 1;
     triggerBrowserNotification(
@@ -249,8 +233,6 @@ function updateNotifyUI() {
   }
 }
 
-// ==================== VIEW ROUTING ====================
-
 function setView(name) {
   state.view = name;
   const views = [
@@ -317,7 +299,6 @@ function setView(name) {
   }
 }
 
-// Session Persistence
 function initSession() {
   try {
     const saved = JSON.parse(localStorage.getItem('mealsync_session'));
@@ -341,8 +322,6 @@ function logout() {
   toast('Logged out.');
   setView('home');
 }
-
-// ==================== DATA API ====================
 
 async function fetchCounters() {
   try {
@@ -408,8 +387,6 @@ function renderAnnouncement() {
   }
 }
 
-// ==================== QUEUE SCHEDULING ====================
-
 async function fetchSchedules() {
   try {
     const res = await fetch('/api/schedules');
@@ -454,8 +431,8 @@ function renderSchedulesTable() {
     const isActive = state.activeSlot && state.activeSlot.id === s.id;
     let statusBadge = '<span class="sched-tag disabled">Inactive</span>';
     if (s.enabled) {
-      statusBadge = isActive 
-        ? '<span class="sched-tag active">Active Now</span>' 
+      statusBadge = isActive
+        ? '<span class="sched-tag active">Active Now</span>'
         : '<span class="sched-tag scheduled">Scheduled</span>';
     }
 
@@ -501,8 +478,6 @@ window.adminDeleteSchedule = async function(id, name) {
   } catch (e) {}
 };
 
-// ==================== TODAY'S MENU (SHOW NOTHING IF EMPTY) ====================
-
 function renderHomeMenu() {
   const section = $('homeMenuSection');
   const grid = $('homeMenuGrid');
@@ -510,20 +485,17 @@ function renderHomeMenu() {
 
   grid.innerHTML = '';
 
-  // Filter counters that have non-empty menu items
   const countersWithMenu = state.counters.filter(c => {
     if (!c.menu || !Array.isArray(c.menu)) return false;
     const validItems = c.menu.filter(item => item && String(item).trim().length > 0);
     return validItems.length > 0;
   });
 
-  // RULE: "no dish is present in menu show nothing"
   if (countersWithMenu.length === 0) {
     section.style.display = 'none';
     return;
   }
 
-  // If dishes exist, display the menu section
   section.style.display = 'block';
 
   countersWithMenu.forEach(c => {
@@ -544,8 +516,6 @@ function renderHomeMenu() {
     grid.appendChild(card);
   });
 }
-
-// ==================== RENDERING ====================
 
 function renderHomeStats() {
   let qTotal = 0, servedTotal = 0, paceSum = 0;
@@ -769,7 +739,6 @@ function renderStaffCounters() {
   });
 }
 
-// 1-Second Interval Ticker
 setInterval(() => {
   if (state.queueStatus.inQueue && state.queueStatus.student) {
     const elapsed = Math.max(0, Math.floor((Date.now() - state.queueStatus.student.joinedAt) / 1000));
@@ -780,8 +749,6 @@ setInterval(() => {
     if (!isNaN(j)) el.textContent = fmtTime((Date.now() - j) / 1000);
   });
 }, 1000);
-
-// ==================== ACTIONS ====================
 
 window.joinLine = async function(id) {
   if (!state.user || state.user.role !== 'student') {
@@ -857,8 +824,6 @@ window.closeCounter = async function(id) {
     }
   } catch (e) {}
 };
-
-// ==================== ADMIN CONSOLE ====================
 
 async function fetchAdminOverview() {
   try {
@@ -937,7 +902,7 @@ function renderAdminModeration(countersList) {
         </div>
 
         <div class="admin-mod-actions">
-          ${isActive 
+          ${isActive
             ? `<button class="btn-admin-small warn" onclick="closeCounter('${c.id}')">Pause Line</button>`
             : `<button class="btn-admin-small success" onclick="adminReopenCounter('${c.id}')">Reopen Line</button>`
           }
@@ -1053,7 +1018,6 @@ window.adminClearQueue = async function(counterId, counterName) {
   } catch (e) {}
 };
 
-// Admin Serve Audit Logs
 async function fetchAuditLogs() {
   const search = $('auditSearchInput') ? $('auditSearchInput').value.trim() : '';
   const counterId = $('auditCounterSelect') ? $('auditCounterSelect').value : '';
@@ -1102,8 +1066,6 @@ function renderAuditLogsTable(serves) {
     tbody.appendChild(tr);
   });
 }
-
-// ==================== AUTH FORMS ====================
 
 $('loginStudentId').addEventListener('input', (e) => {
   const v = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -1222,7 +1184,6 @@ $('adminLoginForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Demo profiles
 window.fillStudentDemo = (name, reg) => {
   $('loginStudentName').value = name;
   $('loginStudentId').value = reg;
@@ -1244,7 +1205,6 @@ window.fillAdminDemo = (name, code) => {
   $('adminCodeFeedback').style.display = 'none';
 };
 
-// Admin Forms
 $('formAdminQueueSize').addEventListener('submit', async (e) => {
   e.preventDefault();
   const defaultMaxQueueSize = parseInt($('inputGlobalMaxQueue').value, 10);
@@ -1299,7 +1259,6 @@ $('btnClearAnnouncement').addEventListener('click', async () => {
   } catch (err) {}
 });
 
-// Admin Queue Scheduling Form
 $('formAddSchedule').addEventListener('submit', async (e) => {
   e.preventDefault();
   const mealName = $('schedMealName').value.trim();
@@ -1328,7 +1287,6 @@ $('formAddSchedule').addEventListener('submit', async (e) => {
   }
 });
 
-// Create Counter Modal
 window.openCreateModal = () => $('createCounterModal').classList.add('open');
 window.closeCreateModal = () => $('createCounterModal').classList.remove('open');
 
@@ -1360,7 +1318,6 @@ $('createCounterForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Admin Tabs Switching
 function setAdminTab(tabName) {
   state.adminTab = tabName;
   ['tabBtnModeration', 'tabBtnScheduling', 'tabBtnSettings', 'tabBtnAuditLogs'].forEach(id => {
@@ -1390,7 +1347,6 @@ function setAdminTab(tabName) {
   }
 }
 
-// Navigation & Actions
 $('navBrand').addEventListener('click', () => setView('home'));
 $('btnNavStudentLogin').addEventListener('click', () => setView('studentLogin'));
 $('btnNavStaffLogin').addEventListener('click', () => setView('staffLogin'));
@@ -1421,20 +1377,17 @@ $('btnCloseAnnouncement').addEventListener('click', () => {
   $('globalAnnouncementBanner').style.display = 'none';
 });
 
-// Admin Tabs
 $('tabBtnModeration').addEventListener('click', () => setAdminTab('moderation'));
 $('tabBtnScheduling').addEventListener('click', () => setAdminTab('scheduling'));
 $('tabBtnSettings').addEventListener('click', () => setAdminTab('settings'));
 $('tabBtnAuditLogs').addEventListener('click', () => setAdminTab('auditLogs'));
 $('btnRefreshAdminOverview').addEventListener('click', fetchAdminOverview);
 
-// Audit Filters
 $('btnApplyAuditFilters').addEventListener('click', fetchAuditLogs);
 $('auditSearchInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') fetchAuditLogs(); });
 $('auditCounterSelect').addEventListener('change', fetchAuditLogs);
 $('auditFoodSelect').addEventListener('change', fetchAuditLogs);
 
-// Diet Filters
 $('filterAllBtn').addEventListener('click', () => {
   state.filter = 'all';
   $('filterAllBtn').classList.add('active');
@@ -1479,7 +1432,6 @@ async function probeBackend() {
   }
 }
 
-// Real-Time SSE with Cross-Origin Connection Support
 let sseHandle = null;
 let sseRetryMs = 1000;
 
@@ -1571,13 +1523,12 @@ function setupSSE() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  // Sync CSV export button with backend URL
+
   const exportBtn = $('btnExportCSV');
   if (exportBtn) {
     exportBtn.href = getApiUrl('/api/admin/export-serves.csv');
   }
 
-  // Interactive Live Status Pill: click to inspect/set backend URL
   const livePill = document.querySelector('.live-status-pill');
   if (livePill) {
     livePill.style.cursor = 'pointer';
