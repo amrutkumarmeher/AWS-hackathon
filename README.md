@@ -163,14 +163,6 @@ MealSync uses a **Dual-Layer Storage Architecture**:
 1. **Primary**: **MongoDB Atlas** (Cloud Database) for distributed persistence.
 2. **Fail-Safe Fallback**: **Local JSON File Store** (`backend/data/mealsync_store.json`). If MongoDB Atlas is temporarily unreachable, the backend seamlessly falls back to disk storage without crashing or dropping user operations.
 
-### ⚠️ Critical Render + MongoDB Atlas Gotcha: IP Whitelist
-By default, MongoDB Atlas blocks connections from unfamiliar IP addresses. Because Render uses dynamic outbound IPs, **you MUST allow access from anywhere in MongoDB Atlas**:
-1. Go to [MongoDB Atlas](https://cloud.mongodb.com/).
-2. In the left navigation, click **Security** ➔ **Network Access**.
-3. Click **Add IP Address**.
-4. Select **Allow Access from Anywhere** (`0.0.0.0/0`).
-5. Click **Confirm**.
-
 ---
 
 ## 📡 Complete Backend API Reference
@@ -365,5 +357,5 @@ Open `http://localhost:5000` in your web browser. The frontend on port 5000 conn
 ## 👨‍💻 Author & Acknowledgements
 
 - **Developed By**: Amrut Kumar Meher & Karanveer Singh
-- **Project**: AWS Hackathon Hostel Mess Management Initiative
-- **License**: ISC
+- **Project**: MealSync
+
